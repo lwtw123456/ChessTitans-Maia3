@@ -123,7 +123,7 @@ if(MSVC)
         /MP
         /EHsc
         /utf-8
-        $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:/O1>
+        $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:/O2>
         $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:/Gy>
         $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:/Gw>
         $<$<OR:$<CONFIG:Release>,$<CONFIG:MinSizeRel>>:/GF>
