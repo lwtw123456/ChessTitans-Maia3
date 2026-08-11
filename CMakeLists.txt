@@ -23,9 +23,6 @@ set(ORT_ROOT        "${THIRD_PARTY_DIR}/onnxruntime-static")
 set(ORT_INCLUDE_DIR "${ORT_ROOT}/include")
 set(ORT_LIB_DIR     "${ORT_ROOT}/lib")
 
-set(MAIA_MODEL
-    "${CMAKE_CURRENT_SOURCE_DIR}/maia3-5m.fp32.onnx")
-
 foreach(required_file
     "${CMAKE_CURRENT_SOURCE_DIR}/maia_ai_dll.cpp"
     "${SAFETYHOOK_DIR}/safetyhook.cpp"
