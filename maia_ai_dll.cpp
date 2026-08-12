@@ -406,10 +406,10 @@ void AiMoveMidHook(SafetyHookContext& context) noexcept {
     auto* game = *At<Game*>(g_moduleBase, kGameRootRva);
     const auto gameBase = reinterpret_cast<std::uintptr_t>(game);
     const int turn = *At<const std::int32_t>(gameBase, kGameTurnOffset);
+    const float elo = 600.0F + (2000.0F / 9.0F) * std::clamp(*At<const int>(g_moduleBase, kDifficultyRva), 0, 9);
     if (turn == 0) {
         auto* board = At<AI::Board>(gameBase, kGameAiBoardOffset);
         const auto& move = *reinterpret_cast<const GameMove*>(context.rdx);
-        const float elo = 1250.0F + 150.0F * std::clamp(*At<const int>(g_moduleBase, kDifficultyRva), 0, 9);
         g_runtime->Observe(board, {(move.fromY << 4) + move.fromX, (move.toY << 4) + move.toX, move.type, 0}, elo);
         return;
     }
@@ -418,7 +418,6 @@ void AiMoveMidHook(SafetyHookContext& context) noexcept {
     const auto boardBase = reinterpret_cast<std::uintptr_t>(board);
     auto* moves = At<AiMove>(boardBase, kAiBoardValidMovesOffset);
     const int count = *At<const int>(boardBase, kAiBoardValidMoveCountOffset);
-    const float elo = 1250.0F + 150.0F * std::clamp(*At<const int>(g_moduleBase, kDifficultyRva), 0, 9);
     *reinterpret_cast<GameMove*>(context.rdx) =
         g_runtime->ChooseMove(board, {moves, static_cast<std::size_t>(count)}, elo);
 }
