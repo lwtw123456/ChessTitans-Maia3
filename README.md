@@ -9,10 +9,7 @@
 - 禁止游戏原 AI 线程启动，并跳过原 AI 的计算流程。
 - 使用 **SafetyHook** 在 AI 落子流程中安装 mid hook。
 - 从游戏 AI Board 读取棋子类型、颜色和当前行棋方。
-- 将局面编码为 `1 x 64 x 12` one-hot tensor：
-  - 6 个己方棋子通道；
-  - 6 个对方棋子通道；
-  - 棋盘方向按当前行棋方统一。
+- 将局面编码为 `1 x 64 x 12` one-hot tensor。
 - 读取游戏内部难度值 `1 ~ 10`，映射为 Elo： `600 ~ 2600`。
 - 使用 **ONNX Runtime** 在 CPU 上执行 Maia3 ONNX 模型，启用 basic graph optimization，并使用 sequential execution。
 - 调用游戏内部的合法着生成函数，取得当前全部合法着。
@@ -23,8 +20,6 @@
 - 使用 **kiero2** 定位 Direct3D 9 的 `Reset` / `Present`，再通过 **SafetyHook** 安装 hook。
 - 使用 **Dear ImGui** 的 DX9 backend 在游戏左上角绘制评估浮窗：
   - 显示 `WIN`、`DRAW`、`LOSS` 百分比和进度条；
-  - 浮窗不接管鼠标或键盘输入；
-  - Direct3D 9 device reset 后会重新创建 ImGui device objects；
   - 尚无评估结果时显示 `Waiting for evaluation...`。
 - 对局结束后，清空上一局评估结果，使浮窗恢复等待状态。
 - 创建主游戏窗口时，将标题 `Chess Titans` 改为 `Chess Titans - Maia 3`。
