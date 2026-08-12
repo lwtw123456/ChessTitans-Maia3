@@ -26,7 +26,7 @@
   - 浮窗不接管鼠标或键盘输入；
   - Direct3D 9 device reset 后会重新创建 ImGui device objects；
   - 尚无评估结果时显示 `Waiting for evaluation...`。
-- 对局结束进入结束提示时，清空上一局评估结果，使浮窗恢复等待状态。
+- 对局结束后，清空上一局评估结果，使浮窗恢复等待状态。
 - 创建主游戏窗口时，将标题 `Chess Titans` 改为 `Chess Titans - Maia 3`。
 
 ## 依赖
