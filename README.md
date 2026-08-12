@@ -2,47 +2,43 @@
 
 为 Windows 7 x64 自带国际象棋（Chess Titans）接入 Maia3 棋力模型的 DLL。
 
-编译产物为 `slc.dll`。DLL 被游戏加载后，接管原有 AI 的选步流程，使用 Maia3 ONNX 模型从游戏当前局面和合法着中选择落子。
+编译产物为 `slc.dll`。DLL 被游戏加载后，会接管原有 AI 的选步流程，使用 Maia3 ONNX 模型从游戏当前局面和合法着中选择落子，并在游戏左上角显示每步后的 `WIN / DRAW / LOSS` 评估。
 
 ## 实现
 
-- 跳过游戏原 AI 的计算
+- 禁止游戏原 AI 线程启动，并跳过原 AI 的计算流程。
 - 使用 **SafetyHook** 在 AI 落子流程中安装 mid hook。
-- 从游戏 AI Board 读取棋子类型、颜色和行棋方。
+- 从游戏 AI Board 读取棋子类型、颜色和当前行棋方。
 - 将局面编码为 `1 x 64 x 12` one-hot tensor：
   - 6 个己方棋子通道；
   - 6 个对方棋子通道；
   - 棋盘方向按当前行棋方统一。
-- 游戏难度 `1 ~ 10` 映射为 Elo：`1250 + 150 * difficulty`，即 `1250 ~ 2600`。
-- 使用 **ONNX Runtime** 在 CPU 上执行 Maia3 ONNX 模型。
-- 模型输入：
-  - `tokens`
-  - `elo_self`
-  - `elo_oppo`
+- 读取游戏内部难度值 `1 ~ 10`，映射为 Elo：`1250 + 150 * difficulty`，即 `1250 ~ 2600`。
+- 使用 **ONNX Runtime** 在 CPU 上执行 Maia3 ONNX 模型，启用 basic graph optimization，并使用 sequential execution。
 - 调用游戏内部的合法着生成函数，取得当前全部合法着。
 - 对游戏生成的合法着计算 Maia policy 索引，在 `logits_move` 中选择分数最高的一步。
 - 将选中的着法写回游戏原 AI 输出结构。
+- 玩家和 AI 每次落子前，都会先通过游戏内部函数临时应用该着，再调用模型的 `logits_value` 输出。
+- 对 `logits_value` 的 loss / draw / win 做 softmax，并结合当前行棋方统一 WIN / LOSS 的显示方向；评估完成后立即撤销临时落子，不改变游戏实际局面。
+- 使用 **kiero2** 定位 Direct3D 9 的 `Reset` / `Present`，再通过 **SafetyHook** 安装 hook。
+- 使用 **Dear ImGui** 的 DX9 backend 在游戏左上角绘制评估浮窗：
+  - 显示 `WIN`、`DRAW`、`LOSS` 百分比和进度条；
+  - 浮窗不接管鼠标或键盘输入；
+  - Direct3D 9 device reset 后会重新创建 ImGui device objects；
+  - 尚无评估结果时显示 `Waiting for evaluation...`。
+- 对局结束进入结束提示时，清空上一局评估结果，使浮窗恢复等待状态。
+- 创建主游戏窗口时，将标题 `Chess Titans` 改为 `Chess Titans - Maia 3`。
 
 ## 依赖
 
-第三方依赖以压缩包形式放在Releases中。构建前将其解压为：
-
-```text
-third_party/
-├─ safetyhook.cpp
-├─ safetyhook.hpp
-├─ Zydis.c
-├─ Zydis.h
-└─ onnxruntime-static/
-   ├─ include/
-   └─ lib/
-```
-
-使用到的主要依赖：
+第三方依赖以压缩包形式放在 Releases 中。当前源码使用到的主要依赖：
 
 - SafetyHook
 - Zydis
 - ONNX Runtime static libraries
+- kiero2
+- Dear ImGui
+- Dear ImGui DirectX 9 backend
 
 ## 模型来源
 
@@ -91,14 +87,9 @@ slc.dll
 maia3-5m.fp32.onnx
 ```
 
-也可以换成其他受支持的模型，例如：
-
-```text
-slc.dll
-maia3-79m.fp16.onnx
-```
-
 启动游戏后，DLL 会自动在程序目录中查找并加载模型，无需修改配置。
+
+加载成功后，游戏窗口标题会显示为 `Chess Titans - Maia 3`，左上角显示 Maia3 的 `WIN / DRAW / LOSS` 评估浮窗。开始产生落子评估前，浮窗会显示 `Waiting for evaluation...`。
 
 `slc.dll` 导出游戏加载时需要的 `SLGetWindowsInformationDWORD`，如果程序目录中已有 `slc.dll`，直接覆盖即可。
 
