@@ -13,7 +13,7 @@
   - 6 个己方棋子通道；
   - 6 个对方棋子通道；
   - 棋盘方向按当前行棋方统一。
-- 读取游戏内部难度值 `1 ~ 10`，映射为 Elo：`1250 + 150 * difficulty`，即 `1250 ~ 2600`。
+- 读取游戏内部难度值 `1 ~ 10`，映射为 Elo： `600 ~ 2600`。
 - 使用 **ONNX Runtime** 在 CPU 上执行 Maia3 ONNX 模型，启用 basic graph optimization，并使用 sequential execution。
 - 调用游戏内部的合法着生成函数，取得当前全部合法着。
 - 对游戏生成的合法着计算 Maia policy 索引，在 `logits_move` 中选择分数最高的一步。
