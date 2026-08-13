@@ -38,7 +38,7 @@ constexpr std::uintptr_t kAiThreadStartRva = 0x4C6F0;
 constexpr std::uintptr_t kBuiltinAiModeRva = 0x199D10;
 constexpr std::uintptr_t kSkipBuiltinAiModeOneRva = 0x651C9;
 constexpr std::uintptr_t kSkipBuiltinAiModeZeroRva = 0x65232;
-constexpr std::uintptr_t kSetDifficultyRva = 0x64B40;
+constexpr std::uintptr_t kSetDifficultyRva = 0x3BDB0;
 constexpr std::array<std::uint8_t, 6> kSkipBuiltinAiModeOnePatch{0xE9, 0xB8, 0, 0, 0, 0x90};
 constexpr std::array<std::uint8_t, 6> kSkipBuiltinAiModeZeroPatch{0xE9, 0x4F, 0, 0, 0, 0x90};
 constexpr std::uintptr_t kGameTurnOffset = 0x1C;
