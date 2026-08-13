@@ -7,7 +7,7 @@
 ## 实现
 
 - 禁止游戏原 AI 线程启动，并跳过原 AI 的计算流程。
-- 使用 **SafetyHook** 在 AI 落子流程中安装 mid hook。
+- 使用 **SafetyHook** 在 AI 落子流程中安装 hook。
 - 从游戏 AI Board 读取棋子类型、颜色和当前行棋方。
 - 将局面编码为 `1 x 64 x 12` one-hot tensor。
 - 读取游戏内部难度值 `1 ~ 10`，映射为 Elo： `600 ~ 2600`。
