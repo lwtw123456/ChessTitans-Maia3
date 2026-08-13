@@ -38,7 +38,7 @@ constexpr std::uintptr_t kAiThreadStartRva = 0x4C6F0;
 constexpr std::uintptr_t kBuiltinAiModeRva = 0x199D10;
 constexpr std::uintptr_t kSkipBuiltinAiModeOneRva = 0x651C9;
 constexpr std::uintptr_t kSkipBuiltinAiModeZeroRva = 0x65232;
-constexpr std::uintptr_t kGameEndPromptRva = 0x64B40;
+constexpr std::uintptr_t kSetDifficultyRva = 0x64B40;
 constexpr std::array<std::uint8_t, 6> kSkipBuiltinAiModeOnePatch{0xE9, 0xB8, 0, 0, 0, 0x90};
 constexpr std::array<std::uint8_t, 6> kSkipBuiltinAiModeZeroPatch{0xE9, 0x4F, 0, 0, 0, 0x90};
 constexpr std::uintptr_t kGameTurnOffset = 0x1C;
@@ -387,7 +387,7 @@ std::filesystem::path FindMaiaModel(const std::filesystem::path& dir) {
 std::unique_ptr<MaiaRuntime> g_runtime;
 SafetyHookMid g_aiMoveHook;
 SafetyHookInline g_aiThreadStartHook;
-SafetyHookInline g_gameEndPromptHook;
+SafetyHookInline g_SetDifficultyHook;
 SafetyHookInline g_createWindowExWHook;
 
 std::array<std::uint8_t, kSkipBuiltinAiModeOnePatch.size()> g_skipBuiltinAiModeOneOriginal{};
@@ -400,10 +400,10 @@ void HookAiThreadStart(void* self, bool /*startAi*/) noexcept {
     g_aiThreadStartHook.call<void>(self, false);
 }
 
-bool HookGameEndPrompt(void* self) noexcept {
+bool HookSetDifficulty(void* self) noexcept {
     g_currentWinRate.store(-1.0F, std::memory_order_relaxed);
     g_currentDrawRate.store(-1.0F, std::memory_order_relaxed);
-    return g_gameEndPromptHook.call<bool>(self);
+    return g_SetDifficultyHook.call<bool>(self);
 }
 
 HWND WINAPI HookCreateWindowExW(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle,
@@ -676,14 +676,14 @@ DWORD WINAPI MaiaBootstrapThread(LPVOID self) noexcept {
         if (!g_aiThreadStartHook.enable())
             return 0;
 
-        auto gameEndPromptHook = safetyhook::create_inline(
-            reinterpret_cast<void*>(g_moduleBase + kGameEndPromptRva),
-            reinterpret_cast<void*>(&HookGameEndPrompt),
+        auto SetDifficultyHook = safetyhook::create_inline(
+            reinterpret_cast<void*>(g_moduleBase + kSetDifficultyRva),
+            reinterpret_cast<void*>(&HookSetDifficulty),
             SafetyHookInline::StartDisabled);
-        if (!gameEndPromptHook)
+        if (!SetDifficultyHook)
             return 0;
-        g_gameEndPromptHook = std::move(gameEndPromptHook);
-        if (!g_gameEndPromptHook.enable())
+        g_SetDifficultyHook = std::move(SetDifficultyHook);
+        if (!g_SetDifficultyHook.enable())
             return 0;
 
         auto createWindowHook = safetyhook::create_inline(
